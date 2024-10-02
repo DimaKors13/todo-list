@@ -14,6 +14,7 @@ To-do list это веб-приложение для ведения, монит�
 - [log/slog] - slog логгер
 - [chi] - роутер http-сервера
 - [SQLite] - база данных
+- [testify] - модульное тестирование
 
 ## Реализация задач повышенной сложности
 
@@ -46,4 +47,5 @@ var Token = ``
    [log/slog]: <https://pkg.go.dev/log/slog@go1.23.1>
    [chi]: <https://github.com/go-chi/chi>
    [sqlite]: <https://www.sqlite.org>
+   [testify]: <https://github.com/stretchr/testify>
    
