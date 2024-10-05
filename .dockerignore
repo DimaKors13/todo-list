@@ -1,0 +1,9 @@
+builds/*
+.vscode
+tests
+*/*.ps1
+*/*.sh
+*/Dockerfile*
+.gitignore
+README.md
+!builds/todo_app

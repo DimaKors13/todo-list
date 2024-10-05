@@ -8,6 +8,8 @@ import (
 	"time"
 )
 
+const TimeFormat = "20060102"
+
 type Task struct {
 	Id      string `json:"id"`
 	Date    string `json:"date,omitempty"`
@@ -41,23 +43,23 @@ func (task *Task) Validate(checkWithId bool) error {
 
 	currentTime := time.Now().Truncate(24 * time.Hour)
 	if task.Date == "" {
-		task.Date = currentTime.Format("20060102")
+		task.Date = currentTime.Format(TimeFormat)
 	}
 
 	if task.Repeat == "" {
-		checkedDate, err := time.Parse("20060102", task.Date)
+		checkedDate, err := time.Parse(TimeFormat, task.Date)
 		if err != nil {
 			errs = append(errs, "wrong format of the Date")
 		} else {
 			if checkedDate.Before(currentTime) {
-				task.Date = currentTime.Format("20060102")
+				task.Date = currentTime.Format(TimeFormat)
 			}
 		}
 	} else {
 		nextDate, err := NextDate(currentTime, task.Date, task.Repeat)
 		if err != nil {
 			errs = append(errs, err.Error())
-		} else if taskDate, _ := time.Parse("20060102", task.Date); taskDate.Before(currentTime) {
+		} else if taskDate, _ := time.Parse(TimeFormat, task.Date); taskDate.Before(currentTime) {
 			task.Date = nextDate
 		}
 	}
@@ -72,7 +74,7 @@ func (task *Task) Validate(checkWithId bool) error {
 
 func NextDate(now time.Time, sourceDate, repeat string) (string, error) {
 
-	date, err := time.Parse("20060102", sourceDate)
+	date, err := time.Parse(TimeFormat, sourceDate)
 	if err != nil {
 		return "", fmt.Errorf("failed to parse date: %w", err)
 	}
@@ -106,7 +108,7 @@ func nextDateWithD(now, date time.Time, repeat string) (string, error) {
 		date = date.Add(time.Hour * time.Duration(days*24))
 	}
 
-	return date.Format("20060102"), nil
+	return date.Format(TimeFormat), nil
 }
 
 func validRepeatD(rule string) bool {
@@ -138,7 +140,7 @@ func nextDateWithY(now, date time.Time, repeat string) (string, error) {
 		date = date.AddDate(1, 0, 0)
 	}
 
-	return date.Format("20060102"), nil
+	return date.Format(TimeFormat), nil
 }
 
 func validRepeatY(rule string) bool {

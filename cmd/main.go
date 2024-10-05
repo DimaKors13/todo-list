@@ -1,12 +1,14 @@
 package main
 
 import (
+	"fmt"
 	"log/slog"
 	"net/http"
 	"os"
 
-	"todo-list/internal/http-server/handlers"
-	chiFileServer "todo-list/internal/lib/chi-FileServer"
+	"todo-list/internal/httpserver"
+	"todo-list/internal/httpserver/handlers"
+	fileServer "todo-list/internal/lib/chifileserver"
 	"todo-list/internal/lib/logger"
 	"todo-list/internal/storage/sqlite"
 
@@ -30,14 +32,15 @@ func main() {
 	router.Use(middleware.RequestID)
 
 	log.Debug("Configure fileserver.")
-	fileServerPath, err := chiFileServer.FileServerPath()
+	fileServerPath, err := fileServer.FileServerPath()
 	if err != nil {
 		log.Error("failed to get fileServer path", logger.Err(err))
 		return
 	}
+
 	filesDir := http.Dir(fileServerPath)
 	router.Handle("/", http.FileServer(filesDir))
-	err = chiFileServer.FileServer(router, "/", filesDir)
+	err = fileServer.FileServer(router, "/", filesDir)
 	if err != nil {
 		log.Error("Failed to сonfigure th fileserveer", logger.Err(err))
 	}
@@ -51,7 +54,7 @@ func main() {
 	router.Delete("/api/task", handlers.DelTask(log, storage))
 
 	server := http.Server{
-		Addr:    "0.0.0.0:7540",
+		Addr:    fmt.Sprintf("0.0.0.0:%s", httpserver.HTTPServerPort(log)),
 		Handler: router,
 	}
 

@@ -7,13 +7,11 @@ import (
 	"os"
 	"strconv"
 	"time"
-	"todo-list/internal/storage"
+	pkgStorage "todo-list/internal/storage"
 	"todo-list/internal/tasks"
 
 	_ "github.com/mattn/go-sqlite3"
 )
-
-const dbFilePath = "database/scheduler.db"
 
 type Storage struct {
 	db *sql.DB
@@ -21,7 +19,7 @@ type Storage struct {
 
 func NewStorage(log *slog.Logger) (*Storage, error) {
 
-	dbPath, err := storage.DBFilePath(dbFilePath)
+	dbPath, err := pkgStorage.DBFilePath(log)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get database file path:%w", err)
 	}
@@ -89,8 +87,8 @@ func (storage Storage) GetTasks() ([]tasks.Task, error) {
 	result := make([]tasks.Task, 0)
 	_ = result
 
-	query := "SELECT id, date, title, comment, repeat FROM scheduler ORDER BY scheduler.date LIMIT 30"
-	rows, err := storage.db.Query(query)
+	queryTemplate := "SELECT id, date, title, comment, repeat FROM scheduler ORDER BY date LIMIT %d"
+	rows, err := storage.db.Query(fmt.Sprintf(queryTemplate, pkgStorage.TaskListLimit))
 	if err != nil {
 		return nil, fmt.Errorf("failed to get tasks list from scheduler: %w", err)
 	}
@@ -121,13 +119,13 @@ func (storage Storage) GetTask(taskId string) (*tasks.Task, error) {
 	query := "SELECT id, date, title, comment, repeat FROM scheduler WHERE id = :id"
 	row := storage.db.QueryRow(query, sql.Named("id", id))
 
-	result := tasks.Task{}
+	result := &tasks.Task{}
 	err = row.Scan(&result.Id, &result.Date, &result.Title, &result.Comment, &result.Repeat)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read task from query result: %w", err)
 	}
 
-	return &result, nil
+	return result, nil
 }
 
 func (storage Storage) UpdateTask(task *tasks.Task) error {
