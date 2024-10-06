@@ -1,0 +1,35 @@
+FROM golang:1.22 as builder
+
+ENV CGO_ENABLED=1 \
+    GOOS=linux \
+    GOARCH=amd64 
+    
+WORKDIR /app
+
+COPY go.mod go.sum ./
+
+RUN go mod download
+
+COPY ./ .
+
+RUN go build -o /app/builds/todo_app ./cmd/main.go
+
+#######################
+
+FROM alpine:latest
+
+ENV TODO_PORT="7540" \
+    TODO_DBFILE="./database/scheduler.db"
+
+RUN apk update
+
+WORKDIR /todo-list
+
+EXPOSE $TODO_PORT
+
+COPY web ./web
+COPY --from=builder app/builds/todo_app ./cmd/
+
+RUN mkdir database
+
+CMD ["cmd/todo_app"]
